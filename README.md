@@ -20,7 +20,7 @@ Before running the bot, make sure you have the following installed:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/lucaslmpa/alfred-bot.git
+   git clone https://github.com/lucasmpa/alfred-bot.git
    cd alfred-bot
    ```
 
