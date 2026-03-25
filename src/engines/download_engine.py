@@ -1,17 +1,25 @@
-import os
-import yt_dlp
+from yt_dlp import YoutubeDL
 
+def download(video_urls):
+    print(video_urls)
+    options = {
+        'format': 'bestaudio/best',
+        'postprocessors': [
+            {
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }
+        ],
+        'outtmpl': 'downloads/%(title)s.%(ext)s',  
+    }
 
-current_directory = os.getcwd()
-
-def download(url_list):
-    for url in url_list:
-        output_path = os.path.join(current_directory, 'downloads', f'{url['title']}.mp3')
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': output_path,
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            if url['url'] :
-                ydl.download([url['url']])
+    try:
+        with YoutubeDL(options) as ydl:
+            for url in video_urls:
+                ydl.download(url)
+        print("Download completed!")
+        return "downloads/"
+    except Exception as e:
+        print(f"Error during download: {e}")
+        return None
