@@ -2,3 +2,7 @@ yt-dlp
 selenium
 webdriver_manager
 tqdm
+flask
+flask-cors
+musicbrainzngs
+mutagen

@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from tqdm import tqdm  # Importa a biblioteca tqdm
+from tqdm import tqdm
 
 def search(playlist):
     chrome_options = Options()
@@ -29,16 +29,22 @@ def search(playlist):
             search_box.send_keys(song)
             search_box.submit()
             
-            links_found = WebDriverWait(browser, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="video-title"]'))
+            WebDriverWait(browser, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//a[@id="video-title"][@href]'))
             )
-            video_url = links_found.get_attribute("href")
-            
-            has_split = video_url.split("&")[0]
-            if has_split:
-                playlist_links.append(has_split)
-            else:
+
+            video_url = None
+            for el in browser.find_elements(By.XPATH, '//a[@id="video-title"][@href]'):
+                href = el.get_attribute("href")
+                if href and "watch?v=" in href:
+                    video_url = href.split("&")[0]
+                    break
+
+            if video_url:
                 playlist_links.append(video_url)
+            else:
+                print(f"\nNenhum vídeo encontrado para '{song}'")
+                continue
         except Exception as e:
             print(f"\nErro ao processar a música '{song}': {e}")
             continue 
