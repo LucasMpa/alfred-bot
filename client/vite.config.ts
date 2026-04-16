@@ -6,11 +6,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/process": {
-        target: "http://localhost:8000",
+        target: "http://api:8000",
         changeOrigin: true,
       },
       "/status": {
-        target: "http://localhost:8000",
+        target: "http://api:8000",
         changeOrigin: true,
       },
     },
