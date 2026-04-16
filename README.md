@@ -1,55 +1,120 @@
+# 🤵🏻‍♂️ Alfred
 
-# Alfred Bot
+Alfred é um app local para baixar músicas do YouTube em MP3, com interface web e adição automática de metadados via MusicBrainz.
 
-Alfred Bot is a simple web scraper bot that searches for songs on YouTube and downloads audio files using `yt-dlp`.
+## Pré-requisitos
 
-## Features
-- Searches for songs on YouTube.
-- Downloads audio files in `.mp3` format.
-- Saves downloads in the `downloads` directory.
+- Python 3.11+
+- Node.js 18+
+- [FFmpeg](https://ffmpeg.org/download.html) instalado e no PATH
+- Google Chrome instalado (usado pelo Selenium como fallback)
 
-## Prerequisites
+---
 
-Before running the bot, make sure you have the following installed:
+## Instalação
 
-- Python 3.6+
-- `yt-dlp` library
-
-## Setup
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/lucasmpa/alfred-bot.git
-   cd alfred-bot
-   ```
-
-2. **Create a virtual environment (optional but recommended):**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-3. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-To run the bot, use the following command:
+### 1. Clone o repositório
 
 ```bash
-python bot.py
+git clone https://github.com/lucasmpa/alfred-bot.git
+cd alfred-bot
 ```
 
-The bot will search for songs on YouTube based on the input you provide and download the audio files into the `downloads` directory.
+### 2. Backend (Python)
 
-## Project Structure
+```bash
+python -m venv venv
 
-- `bot.py` - The main entry point of the bot.
-- `src/engines/download_engine.py` - Handles the downloading of audio files.
-- `src/engines/search_engine.py` - Manages the search functionality on YouTube.
-- `downloads/` - Directory where the downloaded audio files are stored.
+# Mac/Linux
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+### 3. Frontend (Node)
+
+```bash
+cd client
+npm install
+```
+
+### 4. Configurar o domínio local (opcional)
+
+Para acessar via `http://alfred.bot` em vez de `http://localhost`.
+
+Adicione ao arquivo de hosts do seu sistema:
+
+| OS | Arquivo |
+|---|---|
+| Mac/Linux | `/etc/hosts` |
+| Windows | `C:\Windows\System32\drivers\etc\hosts` |
+
+```
+127.0.0.1 alfred.bot
+```
+
+**Mac/Linux:**
+```bash
+echo "127.0.0.1 alfred.bot" | sudo tee -a /etc/hosts
+```
+
+---
+
+## Iniciando
+
+Abra **dois terminais** na raiz do projeto.
+
+### Terminal 1 — API
+
+```bash
+# Mac/Linux
+source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
+
+python api.py
+```
+
+A API ficará disponível em `http://localhost:8000`.
+
+### Terminal 2 — Frontend
+
+```bash
+cd client
+
+# Mac/Linux (porta 80 requer sudo)
+sudo npm run dev
+
+# Windows
+npm run dev
+```
+
+Acesse em:
+- `http://alfred.bot` (se configurou o hosts)
+- `http://localhost` (alternativa)
+
+---
+
+## Estrutura do projeto
+
+```
+alfred-bot/
+├── api.py                        # API Flask
+├── requirements.txt
+├── src/
+│   └── engines/
+│       ├── download_engine.py    # Download + conversão MP3
+│       ├── metadata_engine.py    # Metadados via MusicBrainz
+│       └── search_engine.py      # Busca via Selenium (fallback)
+└── client/                       # Frontend React + Vite
+    ├── src/
+    │   ├── App.tsx
+    │   ├── api.ts
+    │   ├── types.ts
+    │   └── components/
+    └── vite.config.ts
+```

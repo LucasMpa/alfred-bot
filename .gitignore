@@ -1,2 +1,3 @@
 alfred-venv
+/client/node_modules
 .vscode
