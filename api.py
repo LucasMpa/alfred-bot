@@ -1,5 +1,8 @@
 import uuid
 import threading
+import json
+from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.request import urlopen
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from yt_dlp import YoutubeDL
@@ -11,14 +14,48 @@ CORS(app)
 
 jobs = {}
 
-YOUTUBE_HOSTS = ("youtube.com/watch", "youtu.be/", "m.youtube.com/watch")
+YOUTUBE_HOSTS = ("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be")
 
 def is_youtube_url(value):
-    return any(host in value for host in YOUTUBE_HOSTS)
+    parsed = urlparse(value)
+    return parsed.netloc.lower() in YOUTUBE_HOSTS
+
+def youtube_video_id(value):
+    parsed = urlparse(value)
+    host = parsed.netloc.lower()
+
+    if host == "youtu.be":
+        return parsed.path.strip("/").split("/")[0] or None
+
+    if host in ("youtube.com", "www.youtube.com", "m.youtube.com"):
+        if parsed.path == "/watch":
+            return parse_qs(parsed.query).get("v", [None])[0]
+
+        parts = [part for part in parsed.path.split("/") if part]
+        if len(parts) >= 2 and parts[0] in ("embed", "shorts"):
+            return parts[1]
+
+    return None
+
+def canonical_youtube_url(value):
+    video_id = youtube_video_id(value)
+    if not video_id:
+        return value
+    return f"https://www.youtube.com/watch?v={video_id}"
 
 def _thumbnail(video_id):
     return f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 
+
+def youtube_oembed(value):
+    params = urlencode({
+        "url": canonical_youtube_url(value),
+        "format": "json",
+    })
+    endpoint = f"https://www.youtube.com/oembed?{params}"
+
+    with urlopen(endpoint, timeout=5) as response:
+        return json.loads(response.read().decode("utf-8"))
 
 
 @app.route("/search", methods=["POST"])
@@ -28,12 +65,32 @@ def search_song():
     if not query:
         return jsonify({"error": "Provide a query"}), 400
 
-    ytdl_opts = {"quiet": True, "no_warnings": True, "extract_flat": True}
+    ytdl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "extract_flat": True,
+        "ignoreconfig": True,
+    }
     original = query
 
     try:
+        direct_video_id = youtube_video_id(query) if is_youtube_url(query) else None
+        if direct_video_id:
+            try:
+                metadata = youtube_oembed(query)
+            except Exception:
+                metadata = {}
+
+            return jsonify({
+                "url": canonical_youtube_url(query),
+                "title": metadata.get("title", original),
+                "thumbnail": metadata.get("thumbnail_url", _thumbnail(direct_video_id)),
+                "is_playlist": False,
+            })
+
         with YoutubeDL(ytdl_opts) as ydl:
             if is_youtube_url(query):
+                query = canonical_youtube_url(query)
                 info = ydl.extract_info(query, download=False)
             else:
                 info = ydl.extract_info(f"ytsearch1:{query}", download=False)
@@ -79,7 +136,7 @@ def process_job(job_id, songs, download_path, playlist_first_only):
     for i, song in enumerate(songs):
         try:
             if is_youtube_url(song):
-                urls = [song]
+                urls = [canonical_youtube_url(song)]
             else:
                 job["songs"][i]["status"] = "searching"
                 urls = search([song])
@@ -117,12 +174,20 @@ def process():
 
     songs = data["songs"]
     titles = data.get("titles") or songs
+    thumbnails = data.get("thumbnails") or [""] * len(songs)
     download_path = data.get("download_path", "downloads")
     playlist_first_only = set(data.get("playlist_first_only", []))
     job_id = str(uuid.uuid4())
     jobs[job_id] = {
         "status": "processing",
-        "songs": [{"name": title, "status": "queued"} for title in titles],
+        "songs": [
+            {
+                "name": title,
+                "thumbnail": thumbnails[i] if i < len(thumbnails) else "",
+                "status": "queued",
+            }
+            for i, title in enumerate(titles)
+        ],
     }
 
     thread = threading.Thread(

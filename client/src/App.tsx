@@ -109,13 +109,24 @@ export default function App() {
     const readySongs = songs.filter((s) => s.state === "ready");
     const urls = readySongs.map((s) => s.result!.url);
     const titles = readySongs.map((s) => s.result!.title);
+    const thumbnails = readySongs.map((s) => s.result!.thumbnail);
 
     try {
-      const { job_id } = await startJob(urls, titles, settings.download_path, playlistFirstOnly);
+      const { job_id } = await startJob(
+        urls,
+        titles,
+        thumbnails,
+        settings.download_path,
+        playlistFirstOnly
+      );
       const initial: Job = {
         job_id,
         status: "processing",
-        songs: readySongs.map((s) => ({ name: s.result!.title, status: "queued" })),
+        songs: readySongs.map((s) => ({
+          name: s.result!.title,
+          thumbnail: s.result!.thumbnail,
+          status: "queued",
+        })),
       };
       setJobs((prev) => [initial, ...prev]);
       setSongs([]);

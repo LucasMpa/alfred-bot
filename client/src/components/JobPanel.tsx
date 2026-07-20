@@ -20,7 +20,16 @@ export default function JobPanel({ job }: Props) {
       <ul className="song-list">
         {job.songs.map((song, i) => (
           <li key={i} className="song-item">
-            <span className="song-name">{song.name}</span>
+            <div className="song-main">
+              <div className="song-thumb">
+                {song.thumbnail ? (
+                  <img src={song.thumbnail} alt="" className="thumb-img" />
+                ) : (
+                  <div className="thumb-error">?</div>
+                )}
+              </div>
+              <span className="song-name">{song.name}</span>
+            </div>
             <div className="song-right">
               {song.message && (
                 <span className="song-error">{song.message}</span>

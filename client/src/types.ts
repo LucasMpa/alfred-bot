@@ -11,6 +11,7 @@ export type JobStatus = "processing" | "completed" | "completed_with_errors";
 
 export interface SongEntry {
   name: string;
+  thumbnail?: string;
   status: SongStatus;
   message?: string;
 }

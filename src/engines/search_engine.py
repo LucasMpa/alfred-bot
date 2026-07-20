@@ -2,7 +2,12 @@ from yt_dlp import YoutubeDL
 
 
 def search(playlist):
-    opts = {"quiet": True, "no_warnings": True, "extract_flat": True}
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "extract_flat": True,
+        "ignoreconfig": True,
+    }
     playlist_links = []
 
     with YoutubeDL(opts) as ydl:

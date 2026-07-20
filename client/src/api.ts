@@ -15,6 +15,7 @@ export async function searchSong(query: string): Promise<SearchResult> {
 export async function startJob(
   songs: string[],
   titles: string[],
+  thumbnails: string[],
   downloadPath: string,
   playlistFirstOnly: string[]
 ): Promise<{ job_id: string }> {
@@ -24,6 +25,7 @@ export async function startJob(
     body: JSON.stringify({
       songs,
       titles,
+      thumbnails,
       download_path: downloadPath,
       playlist_first_only: playlistFirstOnly,
     }),
