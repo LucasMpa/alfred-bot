@@ -1,116 +1,243 @@
 # 🤵🏻‍♂️ Alfred
 
-Alfred é um app local para baixar músicas do YouTube em MP3, com interface web e adição automática de metadados via MusicBrainz.
+**Alfred** is a local full-stack application for downloading YouTube audio as MP3, with a web interface and automatic metadata enrichment using [MusicBrainz](https://musicbrainz.org/).
 
-## Pré-requisitos
-
-- Python 3.11+
-- Node.js 18+
-- [FFmpeg](https://ffmpeg.org/download.html) instalado e no PATH
-- Google Chrome instalado (usado pelo Selenium como fallback)
+The project combines a **React + TypeScript frontend** with a **Python backend**, integrating external services and tools to automate the entire workflow from search to metadata processing.
 
 ---
 
-## Instalação
+## 🏗️ Architecture
 
-### 1. Clone o repositório
+Alfred is structured as a local full-stack application:
+
+```text
+┌──────────────────────────┐
+│      React + Vite        │
+│         Frontend         │
+└────────────┬─────────────┘
+             │ HTTP
+             ▼
+┌──────────────────────────┐
+│        Flask API         │
+└────────────┬─────────────┘
+             │
+       ┌─────┼──────────────┐
+       ▼     ▼              ▼
+   Download Metadata       Search
+    Engine   Engine        Engine
+       │        │             │
+     FFmpeg  MusicBrainz   Selenium
+```
+
+The backend separates the main responsibilities into dedicated engines:
+
+- **Download Engine** — downloads and converts audio to MP3.
+- **Metadata Engine** — retrieves and applies metadata using MusicBrainz.
+- **Search Engine** — searches for content using Selenium as a fallback.
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- React
+- TypeScript
+- Vite
+
+### Backend
+
+- Python
+- Flask
+- Selenium
+
+### Integrations & Tools
+
+- FFmpeg
+- MusicBrainz
+- yt-dlp
+
+---
+
+## ✨ Technical Highlights
+
+- Full-stack architecture with separate frontend and backend applications
+- React + TypeScript frontend
+- Python backend using Flask
+- Separation of download, metadata and search responsibilities
+- Automatic metadata enrichment through MusicBrainz
+- Audio conversion using FFmpeg
+- Selenium-based search fallback
+- Local development environment with independent frontend and API processes
+
+---
+
+## 📋 Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- [FFmpeg](https://ffmpeg.org/download.html) installed and available in `PATH`
+- Google Chrome installed (used by Selenium as a fallback)
+
+---
+
+## 🚀 Installation
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/lucasmpa/alfred-bot.git
+git clone https://github.com/LucasMpa/alfred-bot.git
 cd alfred-bot
 ```
 
-### 2. Backend (Python)
+### 2. Backend — Python
+
+Create and activate a virtual environment:
 
 ```bash
 python -m venv venv
+```
 
-# Mac/Linux
+**macOS/Linux:**
+
+```bash
 source venv/bin/activate
+```
 
-# Windows
+**Windows:**
+
+```bash
 venv\Scripts\activate
+```
 
+Install the Python dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Frontend (Node)
+### 3. Frontend — Node.js
+
+Install the frontend dependencies:
 
 ```bash
 cd client
 npm install
 ```
 
-### 4. Configurar o domínio local (opcional)
+---
 
-Para acessar via `http://alfred.bot` em vez de `http://localhost`.
+## 🌐 Optional Local Domain
 
-Adicione ao arquivo de hosts do seu sistema:
+You can access Alfred through:
 
-| OS | Arquivo |
-|---|---|
-| Mac/Linux | `/etc/hosts` |
-| Windows | `C:\Windows\System32\drivers\etc\hosts` |
-
+```text
+http://alfred.bot
 ```
+
+instead of `http://localhost`.
+
+Add the following entry to your system's hosts file:
+
+```text
 127.0.0.1 alfred.bot
 ```
 
-**Mac/Linux:**
+### Hosts file locations
+
+| OS | File |
+| --- | --- |
+| macOS/Linux | `/etc/hosts` |
+| Windows | `C:\Windows\System32\drivers\etc\hosts` |
+
+**macOS/Linux:**
+
 ```bash
 echo "127.0.0.1 alfred.bot" | sudo tee -a /etc/hosts
 ```
 
 ---
 
-## Iniciando
+## ▶️ Running the Application
 
-Abra **dois terminais** na raiz do projeto.
+Open **two terminals** from the project root.
 
 ### Terminal 1 — API
 
+Activate the virtual environment if necessary:
+
+**macOS/Linux:**
+
 ```bash
-# Mac/Linux
 source venv/bin/activate
+```
 
-# Windows
+**Windows:**
+
+```bash
 venv\Scripts\activate
+```
 
+Start the Flask API:
+
+```bash
 python api.py
 ```
 
-A API ficará disponível em `http://localhost:8000`.
+The API will be available at:
+
+```text
+http://localhost:8000
+```
 
 ### Terminal 2 — Frontend
 
 ```bash
 cd client
+```
 
-# Mac/Linux (porta 80 requer sudo)
+Start the development server:
+
+**macOS/Linux:**
+
+```bash
 sudo npm run dev
+```
 
-# Windows
+**Windows:**
+
+```bash
 npm run dev
 ```
 
-Acesse em:
-- `http://alfred.bot` (se configurou o hosts)
-- `http://localhost` (alternativa)
+The frontend will be available at:
+
+```text
+http://alfred.bot
+```
+
+or:
+
+```text
+http://localhost
+```
+
+depending on your local configuration.
 
 ---
 
-## Estrutura do projeto
+## 📁 Project Structure
 
-```
+```text
 alfred-bot/
-├── api.py                        # API Flask
+├── api.py                        # Flask API
 ├── requirements.txt
 ├── src/
 │   └── engines/
-│       ├── download_engine.py    # Download + conversão MP3
-│       ├── metadata_engine.py    # Metadados via MusicBrainz
-│       └── search_engine.py      # Busca via Selenium (fallback)
-└── client/                       # Frontend React + Vite
+│       ├── download_engine.py    # Download and MP3 conversion
+│       ├── metadata_engine.py    # MusicBrainz metadata processing
+│       └── search_engine.py      # Selenium-based search fallback
+└── client/                       # React + Vite frontend
     ├── src/
     │   ├── App.tsx
     │   ├── api.ts
@@ -118,3 +245,27 @@ alfred-bot/
     │   └── components/
     └── vite.config.ts
 ```
+
+---
+
+## 🎯 Project Goals
+
+Alfred started as a personal automation project and evolved into an opportunity to explore:
+
+- Full-stack application development
+- Frontend/backend separation
+- External service integration
+- Media processing
+- Python development
+- Web automation
+- Modular backend design
+
+The project is intentionally local and focused on the development experience rather than production deployment.
+
+---
+
+## 📌 Status
+
+This is a personal project and is not intended to be a production-grade media service.
+
+The codebase is mainly maintained as a practical project for experimentation, learning and exploring different approaches to full-stack development.
